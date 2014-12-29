@@ -1,4 +1,5 @@
 #include "String.h"
+#include <assert>
 #include <cstring>
 #include <algorithm>
 
@@ -10,14 +11,9 @@ shell::String::String()
 
 shell::String::String(const char* str) 
 {
-    if (str) {
-        _data = new char[strlen(str) + 1];
-        strcpy(_data, str);
-    }
-    else {
-        _data = new char[1];
-        _data[0] = '\0';
-    }
+    assert(str);
+    _data = new char[strlen(str) + 1];
+    strcpy(_data, str);
 }
 
 shell::String::String(const String& str)
