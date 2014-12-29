@@ -14,6 +14,9 @@ class String {
         String& operator=(String str);
         bool operator==(const String& str);
 
+        const char* data() const;
+        size_t size();
+
     private:
         void swap(String& other);
 

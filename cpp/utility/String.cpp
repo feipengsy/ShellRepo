@@ -33,6 +33,16 @@ shell::String& shell::String::operator=(String str)
     return *this;
 }
 
+const char* shell::String::data()
+{
+    return _data;
+}
+
+size_t shell::String::size()
+{
+    return strlen(_data);
+}
+
 void shell::String::swap(String& other)
 {
     std::swap(_data, other._data);
