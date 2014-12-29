@@ -1,5 +1,6 @@
 #include "String.h"
 #include <cstring>
+#include <algorithm>
 
 shell::String::String()
              : _data(new char[1])
@@ -8,9 +9,15 @@ shell::String::String()
 }
 
 shell::String::String(const char* str) 
-             : _data(0)
 {
-    _init(str);
+    if (str) {
+        _data = new char[strlen(str) + 1];
+        strcpy(_data, str);
+    }
+    else {
+        _data = new char[1];
+        _data[0] = '\0';
+    }
 }
 
 shell::String::String(const String& str)
@@ -24,17 +31,13 @@ shell::String::~String()
     delete [] _data;
 }
 
-shell::String& shell::String::operator=(const String& str)
+shell::String& shell::String::operator=(String str)
 {
-    if (&this != str) {
-        delete [] _data;
-        _init(str);
-    } 
+    swap(str);
     return *this;
 }
 
-void shell::String::_init(const String& str)
+void shell::String::swap(String& other)
 {
-    _data = new char[strlen(str) + 1];
-    strcpy(_data, s);
+    std::swap(_data, other._data);
 }

@@ -11,11 +11,11 @@ class String {
         String(const String& str);
         ~String();
 
-        String& operator=(const String& str);
+        String& operator=(String str);
         bool operator==(const String& str);
 
     private:
-        void _init(const String& str);
+        void swap(String& other);
 
     private:
         char* _data;
