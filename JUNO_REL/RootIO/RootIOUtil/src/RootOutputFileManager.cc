@@ -6,6 +6,7 @@
 #include "JobInfo.h"
 #include "FileMetaData.h"
 #include "UniqueIDTable.h"
+#include "EvtNavigator/EvtNavigator.h"
 
 #include <iostream>
 #include <fstream>
@@ -15,6 +16,8 @@ RootOutputFileHandle::RootOutputFileHandle(const std::string& filename,
                                            const std::map<std::string, int>& paths)
     : m_file(TFile::Open(filename.c_str(),"recreate","RootOutputStream file"))
     , m_navTree(new TTree("navigator", "Tree for EvtNavigator"))
+    , m_relTree(0)
+    , m_relAddr(0)
     , m_fileMetaData(new JM::FileMetaData())
     , m_IDTable(new JM::UniqueIDTable())
     , m_jobInfo(0)
@@ -107,6 +110,8 @@ void RootOutputFileHandle::close()
 
     // Write out TTree holding EvtNavigator
     m_navTree->Write(NULL,TObject::kOverwrite);
+    // Write out TTree holding Elec2DetRelation
+    if (m_relTree) m_relTree->Write(NULL,TObject::kOverwrite);
     // Write out file meta data
     m_fileMetaData->Write("FileMetaData");
     // Write out the UniqueIDTable
@@ -158,11 +163,6 @@ void RootOutputFileHandle::addTreeMetaData(JM::TreeMetaData* treemetadata)
     m_fileMetaData->AddTreeMetaData(treemetadata);
 }
 
-TTree* RootOutputFileHandle::getNavTree()
-{
-    return m_navTree;
-}
-
 bool RootOutputFileHandle::isLastPath(const std::string& path)
 {
     PathMap::iterator it, end = m_paths.end();
@@ -171,11 +171,6 @@ bool RootOutputFileHandle::isLastPath(const std::string& path)
         if (it->second == false) return false;
     }
     return true;
-}
-
-void RootOutputFileHandle::setNavAddr(void* navAddr)
-{
-    m_navAddr = navAddr;
 }
 
 bool RootOutputFileHandle::hasPath(const std::string& path)
@@ -194,6 +189,28 @@ void RootOutputFileHandle::revise(const std::string& path, int priority)
     if (m_paths.find(path) == m_paths.end()) {
         m_paths.insert(std::make_pair(path, false));
     }
+}
+
+bool RootOutputFileHandle::writeNav(JM::EvtNavigator* nav) 
+{
+    // Tell FileMetaData what paths EvtNavigator privides.
+    const std::vector<std::string>& adjustedPath = this->setNavPath(nav->getPath());
+    // Make sure all EvtNavigators in this stream hold same paths.
+    nav->adjustPath(adjustedPath);
+
+    m_navAddr = nav;
+    int nbytesnav = m_navTree->Fill();
+    // write the relation
+    if (!m_relTree && nav->writeRelFlag()) {
+        m_relTree = new TTree("Elec2Det", "Tree for Elec2DetRelation");
+        m_relTree->Branch("Elec2Det", "Elec2DetRelation", &m_relAddr);
+    }
+    if (m_relTree) {
+        m_relAddr = nav->getElec2DetRelation();
+        int nbytesrel = m_relTree->Fill();
+        return (nbytesnav > 0) && (nbytesrel > 0);
+    }
+    return nbytesnav > 0;
 }
 
 /*   RootOutputFileManager   */

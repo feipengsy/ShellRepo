@@ -1,10 +1,13 @@
 #include "EvtNavigator/EvtNavigator.h"
 #include "EDMManager.h"
+#include "EvtNavigator/Elec2DetRelation.h"
 #include <algorithm>
 
 ClassImp(JM::EvtNavigator);
 
 JM::EvtNavigator::EvtNavigator()
+  : m_elec2det(0)
+  , m_writeRelFlag(false)
 {
     this->Class()->IgnoreTObjectStreamer();
 }
@@ -15,6 +18,7 @@ JM::EvtNavigator::~EvtNavigator()
     for (it = m_refs.begin(); it != end; ++it) {
         delete *it;
     }
+    if (m_elec2det)  delete m_elec2det;
 }
 
 JM::EvtNavigator::EvtNavigator(const JM::EvtNavigator& nav)
@@ -204,4 +208,22 @@ JM::SmartRef* JM::EvtNavigator::getSmartRef(const std::string& path)
         return 0;
     } 
     return m_refs[ps];
+}
+
+void JM::EvtNavigator::setElec2DetRelation(Elec2DetRelation* relation)
+{
+    if (!m_elec2det) m_elec2det = new SmartRef;
+    m_elec2det->SetObject(relation);
+    // Write out the relation first time when it's created
+    m_writeRelFlag = true;
+}
+
+Elec2DetRelation* JM::EvtNavigator::getElec2DetRelation()
+{
+    return m_elec2det ? dynamic_cast<Elec2DetRelation*>(m_elec2det->GetObject()) : 0;
+}
+
+void JM::EvtNavigator::setRelEntry(Long64_t value)
+{
+    if (m_elec2det) m_elec2det->setEntry(value);
 }

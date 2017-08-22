@@ -16,6 +16,7 @@ namespace JM {
     class FileMetaData;
     class TreeMetaData;
     class UniqueIDTable;
+    class EvtNavigator;
 }
 
 class RootOutputFileHandle {
@@ -28,7 +29,6 @@ public:
     RootOutputFileHandle(const std::string& filename, const std::map<std::string, int>& paths);
     ~RootOutputFileHandle();
     TFile* getFile();
-    TTree* getNavTree();
     std::string getName();
     const StringVector& setNavPath(const StringVector& paths);
     void addTreeMetaData(JM::TreeMetaData* treemetadata);
@@ -42,7 +42,7 @@ public:
     void addUUID(const StringVector& uuids);
     int  decRef();
     bool isLastPath(const std::string& path);
-    void setNavAddr(void* navAddr);
+    bool writeNav(JM::EvtNavigator* nav);
     void close();
     void occupyPath(const std::string& path);
     bool hasPath(const std::string& path);
@@ -51,6 +51,8 @@ public:
 private:
     TFile*              m_file;
     TTree*              m_navTree;
+    TTree*              m_relTree;
+    void*               m_relAddr;
     JM::FileMetaData*   m_fileMetaData;
     JM::UniqueIDTable*  m_IDTable;
     JobInfo*            m_jobInfo;

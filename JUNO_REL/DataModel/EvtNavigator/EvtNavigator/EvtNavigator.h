@@ -9,6 +9,8 @@
 #include <vector>
 #include <string>
 
+class Elec2DetRelation;
+
 namespace JM {
 
 class EvtNavigator : public TObject {
@@ -53,6 +55,11 @@ class EvtNavigator : public TObject {
         TTimeStamp& TimeStamp();
         // Set time stamp
         void setTimeStamp(const TTimeStamp& value);
+        // Hit/Track level relation
+        void setElec2DetRelation(Elec2DetRelation* relation);
+        Elec2DetRelation* getElec2DetRelation();
+        bool writeRelFlag() { return m_writeRelFlag; }
+        void setRelEntry(Long64_t value);
     
     private:
         // paths and write flags won't be saved
@@ -60,6 +67,8 @@ class EvtNavigator : public TObject {
         std::vector<bool>           m_writeFlag; //!
         std::vector<JM::SmartRef*>  m_refs;
         TTimeStamp                  m_TimeStamp; // Time stamp of event
+        SmartRef*                   m_elec2det;
+        bool                        m_writeRelFlag; //!
 
         // Initialize self, using another EvtNavigator
         void init(const EvtNavigator& nav);

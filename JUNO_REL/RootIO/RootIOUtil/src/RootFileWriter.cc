@@ -107,7 +107,6 @@ void OutputTreeHandle::fillUID(int bid)
 RootFileWriter::RootFileWriter(const std::string& path, const std::string& headerName)
     : m_file(0)
     , m_headerTree(0)
-    , m_navTree(0)
     , m_dir(0)
     , m_path(path)
     , m_headerName(headerName)
@@ -136,11 +135,6 @@ bool RootFileWriter::write(JM::EvtNavigator* nav)
                  << std::endl;
         return false;
     }
-    if (m_withNav && !m_navTree) {
-        LogError << "No tree for EvtNavigator, can not write"
-                 << std::endl;
-        return false;
-    }
 
     // Try to initialize if nessassry
     if (!m_initialized) {
@@ -151,11 +145,12 @@ bool RootFileWriter::write(JM::EvtNavigator* nav)
     this->setAddress(nav);
 
     bool write = m_navAddr->writePath(m_path);
+    nav->setRelEntry(m_fileEntries);
     if (!m_initialized || !write) {
         // Currently unknown stream or skipped entry, just idling
         ++m_fileEntries;
         if (m_withNav) {
-            this->writeNav();
+            m_file->writeNav(m_navAddr);
         }
         return true;  
     }
@@ -176,7 +171,7 @@ bool RootFileWriter::write(JM::EvtNavigator* nav)
         return false;
     }
 
-    if (m_withNav) ok = this->writeNav();
+    if (m_withNav) ok = m_file->writeNav(m_navAddr);
     if (!ok) {
         LogError << "Fail to write EvtNavigator with " << m_path
                  << std::endl;
@@ -228,22 +223,6 @@ bool RootFileWriter::writeEvent()
     return true;
 }
 
-bool RootFileWriter::writeNav()
-{
-    // Tell FileMetaData what paths EvtNavigator privides.
-    const std::vector<std::string>& adjustedPath = m_file->setNavPath(m_navAddr->getPath());
-    // Make sure all EvtNavigators in this stream hold same paths.
-    m_navAddr->adjustPath(adjustedPath);
-
-    m_file->setNavAddr(m_navAddr);
-    int nbytes = m_navTree->Fill();
-    LogDebug <<  "Wrote " << nbytes
-             << " bytes to entry " << m_fileEntries + 1
-             << " of tree for EvtNavigator "
-             << std::endl;
-    return nbytes > 0;
-}
-
 bool RootFileWriter::close()
 {
     if (!m_initialized) return true;
@@ -263,9 +242,6 @@ bool RootFileWriter::close()
         delete it->second;
     }
 
-    // Tree for EvtNavigator will be written by file handle
-    //if (m_withNav) m_navTree->Write(NULL,TObject::kOverwrite);
-
     // Set TreeMetaData
     TMDVector::iterator tit, tend = m_treeMetaDatas.end();
     for (tit = m_treeMetaDatas.begin(); tit != tend; ++tit) {
@@ -280,7 +256,6 @@ bool RootFileWriter::close()
     delete m_headerTree;
     m_headerTree = 0;
     m_eventTrees.clear();
-    m_navTree = 0;
     m_dir = 0;
     m_withNav = false;
     // Reset file entry
@@ -369,10 +344,7 @@ void RootFileWriter::checkFilePath()
 {
     // Make the TTree holding EvtNavigator
     // Save EvtNavigator together with the last path in the file
-    if (m_file->isLastPath(m_path)) {
-        m_withNav = true;
-        m_navTree = m_file->getNavTree();
-    }
+    if (m_file->isLastPath(m_path))  m_withNav = true;
 }
 
 void RootFileWriter::resetAddress()

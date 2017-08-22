@@ -87,8 +87,6 @@ class RootFileWriter {
         bool writeHeader();
         // Write event data to tree
         bool writeEvent();
-        // Write Evtnavigators to tree
-        bool writeNav();
         // Check if this path is the last path of its output file
         void checkFilePath();
         // Set Address of branches to be filled
@@ -100,7 +98,6 @@ class RootFileWriter {
         RootOutputFileHandle*   m_file;
         OutputTreeHandle*       m_headerTree;
         String2TreeHandle       m_eventTrees;
-        TTree*                  m_navTree;
         TMDVector               m_treeMetaDatas;
         TDirectory*             m_dir;
         std::string             m_path;
