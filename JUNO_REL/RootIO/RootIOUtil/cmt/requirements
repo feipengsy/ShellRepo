@@ -1,0 +1,14 @@
+package RootIOUtil
+
+use SniperKernel v*
+use BaseEvent v* DataModel
+use EDMUtil v* DataModel
+use EvtNavigator v* DataModel
+use ROOT v* Externals
+
+apply_pattern install_more_includes more=RootIOUtil
+
+include_dirs $(ROOTIOUTILROOT)/RootIOUtil
+library RootIOUtil *.cc
+apply_pattern linker_library library=RootIOUtil
+

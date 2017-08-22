@@ -1,0 +1,14 @@
+package EvtNavigator
+
+use ROOT v* Externals
+use BaseEvent v* DataModel
+use EDMUtil v* DataModel
+
+apply_pattern install_more_includes more=EvtNavigator
+
+macro_append EvtNavigator_cintflags "-I$(CMTINSTALLAREA)/include"
+apply_pattern cint_dictionary files=../EvtNavigator/EvtNavigator.h
+
+include_dirs $(EVTNAVIGATORROOT)/EvtNavigator
+library EvtNavigator *.cc
+apply_pattern linker_library library=EvtNavigator
